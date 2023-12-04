@@ -1,18 +1,27 @@
 
-#define MQTT // WEB
+#define WEB // WEB
 
 #include <Person_Detector_inferencing.h>
 #include "edge-impulse-sdk/dsp/image/image.hpp"
-#include "esp_camera.h"
-#include <WiFi.h>
 
-#include <PubSubClient.h>
+#ifndef WEB_UTILS_H
+#include "esp_camera.h"
+#endif
 
 #include "pines.h"
 #include "config.h"
 
-WiFiClient espClient;
-PubSubClient mqttClient(espClient);
+
+#ifdef MQTT
+
+#include "src/mqtt_utils.h"
+
+#elif defined(WEB)
+
+#include "src/web_utils.h"
+
+#endif
+
 
 static camera_config_t camera_config = {
     .pin_pwdn = PWDN_GPIO_NUM,
@@ -52,10 +61,7 @@ bool ei_camera_init(void);
 void ei_camera_deinit(void);
 bool ei_camera_capture(uint32_t img_width, uint32_t img_height, uint8_t *out_buf);
 
-void setup_wifi();
-void init_mqtt();
-void connect_mqtt();
-void mqtt_publish(String topic, char *payload);
+
 
 void setup()
 {
@@ -70,9 +76,21 @@ void setup()
     ei_printf("Camera initialized\r\n");
   }
 
+  get_wifi_credentials();
   setup_wifi();
+
+  #ifdef MQTT
+  get_mqtt_credentials();
   init_mqtt();
   connect_mqtt();
+
+  #elif defined(WEB)
+
+  init_sppifs();
+  init_webserver();
+  server.begin();
+
+  #endif
 
   ei_printf("\nStarting continious inference in 2 seconds...\n");
   ei_sleep(2000);
@@ -80,7 +98,9 @@ void setup()
 
 void loop()
 {
+  #ifdef MQT
   handdle_qmtt();
+  #endif
 
   if (ei_sleep(5) != EI_IMPULSE_OK)
   {
@@ -127,76 +147,31 @@ void loop()
               result.classification[ix].value);
   }
 
-
+  #ifdef MQTT
   if (result.classification[1].value > 0.65)
   {
 
     mqtt_publish("alerta", "1");
   }
-}
 
-void mqtt_publish(String topic, char *payload)
-{
-
-  mqttClient.publish(topic.c_str(), payload);
-}
-
-void handdle_qmtt()
-{
-
-  if (!mqttClient.connected())
-  {
-
-    connect_mqtt();
-  }
-
-  mqttClient.loop();
-}
-
-void connect_mqtt()
-{
-
-  while (!mqttClient.connected())
-  {
-
-    Serial.print("Connecting to MQTT");
-
-    if (mqttClient.connect("ESP32Client"))
-      Serial.println("connected");
-
-    else
-    {
-      Serial.print("failed with state ");
-      Serial.print(mqttClient.state());
-      delay(500);
+  #elif defined(WEB)
+  senial = result.classification[1].value;
+      
+  File file = SPIFFS.open("/image.jpg", FILE_WRITE);
+  if (!file) {
+      Serial.println("Failed to open file for writing");
     }
-  }
-}
+  file.write(fb->buf, fb->len);
+  file.close();
 
-void init_mqtt()
-{
+  esp_camera_fb_return(fb);
+  #endif
 
-  Serial.print("Connect to MQTT -");
-  Serial.print(mqttServer);
-  Serial.print("-");
-  Serial.println(mqttPort);
 
-  mqtt_client.setServer(mqttServer, mqttPort);
-}
+ 
 
-void setup_wifi()
-{
+  free(snapshot_buf);
 
-  WiFi.begin(ssid, password);
-
-  Serial.print("Connecting to WiFi.");
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    delay(500);
-    Serial.print(".");
-  }
-
-  Serial.println("Connected to WiFi");
 }
 
 bool ei_camera_init(void) {
