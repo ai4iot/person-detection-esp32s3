@@ -1,7 +1,8 @@
 
-#define WEB // WEB
+//#define WEB
+#define MQTT
 
-#include <Person_Detector_inferencing.h>
+#include <Person_Detector_v4_inferencing.h>
 #include "edge-impulse-sdk/dsp/image/image.hpp"
 
 #ifndef WEB_UTILS_H
@@ -75,12 +76,15 @@ void setup()
   {
     ei_printf("Camera initialized\r\n");
   }
-
-  get_wifi_credentials();
+  ssid = "Xiaomi_planta1";
+  password = "xfcdK7dKuu";
+  
   setup_wifi();
 
   #ifdef MQTT
-  get_mqtt_credentials();
+  //get_mqtt_credentials();
+  mqttServer = "192.168.31.172";
+  mqttPort = 1883;
   init_mqtt();
   connect_mqtt();
 
@@ -151,7 +155,7 @@ void loop()
   if (result.classification[1].value > 0.65)
   {
 
-    mqtt_publish("alerta", "1");
+    mqtt_publish("/alerta", "1");
   }
 
   #elif defined(WEB)

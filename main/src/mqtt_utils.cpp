@@ -56,22 +56,22 @@ void mqtt_publish(String topic, char *payload)
 }
 
 
-void get_mqtt_credentials()
-{
-    Serial.print("MQTT broker ip: ");
-    while (!Serial.available()) {
-        
-    }
-    String mqttServerString = Serial.readStringUntil('\n');
-    mqttServer = mqttServerString.c_str();
-    Serial.println("IP: ");
-    Serial.print(mqttServerString);
-
-    Serial.print("\nMQTT broker port: ");
-    while (!Serial.available()) {
-        
-    }
-    mqttPort = Serial.readStringUntil('\n').toInt();
-    Serial.println("Port: " + mqttPort);
- 
-}
+//void get_mqtt_credentials()
+//{
+//    Serial.print("MQTT broker ip: ");
+//    while (!Serial.available()) {
+//
+//    }
+//    String mqttServerString = Serial.readStringUntil('\n');
+//    mqttServer = mqttServerString.c_str();
+//    Serial.println("IP: ");
+//    Serial.print(mqttServerString);
+//
+//    Serial.print("\nMQTT broker port: ");
+//    while (!Serial.available()) {
+//
+//    }
+//    mqttPort = Serial.readStringUntil('\n').toInt();
+//    Serial.println("Port: " + mqttPort);
+//
+//}
