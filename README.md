@@ -48,16 +48,16 @@ It has two modes of operation, you can change the mode with a macro in the [main
 
 ### MQTT Mode
 
-When you run the code, you have tto enter the SSID and password of your WiFi network and the
+When you run the code, you have tto enter the SSID and password of your Wi-Fi network and the
 IP address of the MQTT broker and the port.  
 In this mode when the threshold is exceeded(0.65), the ESP32S3 sends a message to the MQTT broker.
 
 ### WEB Mode
 
-When you run the code, you have tto enter the SSID and password of your WiFi network. Then you have to 
+When you run the code, you have tto enter the SSID and password of your Wi-Fi network. Then you have to 
 browse in your browser to the IP address of the ESP32S3 and the image capture by the camera will appear.
 When the threshold is exceeded(0.65) the background of the page will turn green otherwise it will turn red.
-Also the percentage of person is show in the web page.
+Also, the percentage of person is show in the web page.
 
 
 ## Config
