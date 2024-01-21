@@ -1,17 +1,16 @@
 
-//#define WEB
-#define MQTT
+#define WEB
+//#define MQTT
 
 #include <Person_Detector_v4_inferencing.h>
 #include "edge-impulse-sdk/dsp/image/image.hpp"
 
-#ifndef WEB_UTILS_H
-#include "esp_camera.h"
-#endif
-
 #include "pines.h"
 #include "config.h"
 
+#ifndef WEB_UTILS_H
+#include "esp_camera.h"
+#endif
 
 #ifdef MQTT
 
@@ -92,6 +91,9 @@ void setup()
 
   init_sppifs();
   init_webserver();
+  IPAddress ip = WiFi.localIP();
+  Serial.print("IP: ");
+  Serial.println(ip);
   server.begin();
 
   #endif
@@ -160,23 +162,22 @@ void loop()
 
   #elif defined(WEB)
   senial = result.classification[1].value;
-      
   File file = SPIFFS.open("/image.jpg", FILE_WRITE);
   if (!file) {
       Serial.println("Failed to open file for writing");
     }
   file.write(fb->buf, fb->len);
   file.close();
-
   esp_camera_fb_return(fb);
   #endif
 
 
  
-
+  
   free(snapshot_buf);
 
 }
+
 
 bool ei_camera_init(void) {
 
@@ -234,7 +235,11 @@ bool ei_camera_capture(uint32_t img_width, uint32_t img_height, uint8_t *out_buf
         return false;
     }
 
+    #ifdef MQTT
     camera_fb_t *fb = esp_camera_fb_get();
+    #elif defined(WEB)
+    fb = esp_camera_fb_get();
+    #endif
 
     if (!fb) {
         ei_printf("Camera capture failed\n");
@@ -243,7 +248,9 @@ bool ei_camera_capture(uint32_t img_width, uint32_t img_height, uint8_t *out_buf
 
    bool converted = fmt2rgb888(fb->buf, fb->len, PIXFORMAT_JPEG, snapshot_buf);
 
+   #ifdef MQTT
    esp_camera_fb_return(fb);
+   #endif
 
    if(!converted){
        ei_printf("Conversion failed\n");
