@@ -6,8 +6,6 @@
 
 #include <WiFi.h>
 
-//const char* ssid = "ASUS_GRAM";
-//const char* password = "GramLab0rat0ri0";
 extern const char* password;
 extern const char* ssid;
 

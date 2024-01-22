@@ -1,16 +1,16 @@
 
-#define WEB // WEB
+#define WEB
+//#define MQTT
 
-#include <Person_Detector_inferencing.h>
+#include <Person_Detector_v4_inferencing.h>
 #include "edge-impulse-sdk/dsp/image/image.hpp"
-
-#ifndef WEB_UTILS_H
-#include "esp_camera.h"
-#endif
 
 #include "pines.h"
 #include "config.h"
 
+#ifndef WEB_UTILS_H
+#include "esp_camera.h"
+#endif
 
 #ifdef MQTT
 
@@ -75,12 +75,15 @@ void setup()
   {
     ei_printf("Camera initialized\r\n");
   }
-
-  get_wifi_credentials();
+  ssid = "Xiaomi_planta1";
+  password = "xfcdK7dKuu";
+  
   setup_wifi();
 
   #ifdef MQTT
-  get_mqtt_credentials();
+  //get_mqtt_credentials();
+  mqttServer = "192.168.31.172";
+  mqttPort = 1883;
   init_mqtt();
   connect_mqtt();
 
@@ -88,6 +91,9 @@ void setup()
 
   init_sppifs();
   init_webserver();
+  IPAddress ip = WiFi.localIP();
+  Serial.print("IP: ");
+  Serial.println(ip);
   server.begin();
 
   #endif
@@ -151,28 +157,27 @@ void loop()
   if (result.classification[1].value > 0.65)
   {
 
-    mqtt_publish("alerta", "1");
+    mqtt_publish("/alerta", "1");
   }
 
   #elif defined(WEB)
   senial = result.classification[1].value;
-      
   File file = SPIFFS.open("/image.jpg", FILE_WRITE);
   if (!file) {
       Serial.println("Failed to open file for writing");
     }
   file.write(fb->buf, fb->len);
   file.close();
-
   esp_camera_fb_return(fb);
   #endif
 
 
  
-
+  
   free(snapshot_buf);
 
 }
+
 
 bool ei_camera_init(void) {
 
@@ -230,7 +235,11 @@ bool ei_camera_capture(uint32_t img_width, uint32_t img_height, uint8_t *out_buf
         return false;
     }
 
+    #ifdef MQTT
     camera_fb_t *fb = esp_camera_fb_get();
+    #elif defined(WEB)
+    fb = esp_camera_fb_get();
+    #endif
 
     if (!fb) {
         ei_printf("Camera capture failed\n");
@@ -239,7 +248,9 @@ bool ei_camera_capture(uint32_t img_width, uint32_t img_height, uint8_t *out_buf
 
    bool converted = fmt2rgb888(fb->buf, fb->len, PIXFORMAT_JPEG, snapshot_buf);
 
+   #ifdef MQTT
    esp_camera_fb_return(fb);
+   #endif
 
    if(!converted){
        ei_printf("Conversion failed\n");
