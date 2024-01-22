@@ -75,14 +75,14 @@ void setup()
   {
     ei_printf("Camera initialized\r\n");
   }
-  ssid = "Xiaomi_planta1";
-  password = "xfcdK7dKuu";
+  ssid = *****;
+  password = *****;
   
   setup_wifi();
 
   #ifdef MQTT
   //get_mqtt_credentials();
-  mqttServer = "192.168.31.172";
+  mqttServer = ******;
   mqttPort = 1883;
   init_mqtt();
   connect_mqtt();
